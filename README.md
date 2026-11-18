@@ -77,6 +77,28 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
 
 装完**重启 DSH** 生效。
 
+### 重装 DSH 后恢复
+
+DSH 重装或重置 profile 会清空 `plugins/`、`package.json` 与 `cordis.patch.yml` 里的改动，插件随之消失。
+恢复只需要三步：
+
+```powershell
+git clone https://github.com/2951461586/dsh-web-search-custom.git
+cd dsh-web-search-custom
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
+```
+
+脚本按默认值重建 `chain` 链路（`exa → firecrawl → parallel → tinyfish → bing`）。
+要保留自定义链路或引擎：
+
+```powershell
+.\scripts\install.ps1 -Engine chain -Chain exa,firecrawl,bing
+.\scripts\install.ps1 -Engine auto
+```
+
+脚本可重复执行：每次先备份 `package.json.bak-*` / `cordis.patch.yml.bak-*`，再按 id 覆盖，
+不会堆叠出多个 `- id: web-search-custom`。
+
 ### 方式二：手动
 
 1. 把本仓库复制到 `%USERPROFILE%\.dsh\profiles\desktop\plugins\dsh-web-search-custom\`
