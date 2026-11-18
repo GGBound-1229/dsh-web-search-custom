@@ -1,0 +1,55 @@
+{
+  "name": "dsh-web-search-custom",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Bring-your-own search backend for DSH ctx.web: bing / bocha / tavily / searxng / generic / keyless MCP providers with an in-process failover chain",
+  "license": "MIT",
+  "author": "XXD",
+  "homepage": "https://github.com/2951461586/dsh-web-search-custom#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2951461586/dsh-web-search-custom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/2951461586/dsh-web-search-custom/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "web-search",
+    "cordis",
+    "plugin",
+    "mcp",
+    "exa",
+    "firecrawl",
+    "searxng",
+    "tavily"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node tests/selftest.mjs",
+    "test:chain": "node tests/chain-test.mjs",
+    "test:creds": "node tests/selftest-creds.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "meta": {
+    "title": "自定义网页搜索",
+    "description": "用第三方搜索 API / keyless 端点替换 DSH 官方 web_search，不依赖 DeepSeek 账号或 API Key。"
+  }
+}

@@ -1,0 +1,13 @@
+# dsh-web-search-custom
+# 把 ctx.web 的搜索后端换成本插件，取代 DeepSeek 官方 web_search。
+
+- insert:
+    - id: web-search-custom
+      name: 'dsh-web-search-custom'
+      config:
+        providerId: custom
+        # auto: 解析到 BOCHA_API_KEY 就走博查，否则回落 bing HTML 解析
+        engine: auto
+        apiKeyEnv: BOCHA_API_KEY
+        maxResults: 10
+        timeoutMs: 20000
