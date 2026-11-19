@@ -56,7 +56,7 @@ DSH 内置搜索链路是 `web_search → ctx.web → dsh-web-search-deepseek �
 装进 DSH profile 的本质只有三步：**把包放进 `node_modules` → 把包名加进 `bundles` → 让 `web` 选到这个 provider。**
 第三步是这个插件唯一特殊的地方：必须给 `dsh-web` 写一条 `- id: web` 覆盖。
 
-### 方式一：克隆 + 脚本（推荐）
+### 方式一：克隆 + 脚本（Windows，推荐）
 
 ```powershell
 git clone https://github.com/GGBound-1229/dsh-web-search-custom.git
@@ -81,6 +81,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
 .\scripts\install.ps1 -ProfilePath 'D:\my-dsh-profile\desktop'
 ```
 
+> 脚本是 PowerShell 写的，只在 Windows 上跑；macOS / Linux 走方式二或方式三，
+> profile 目录换成 `~/.dsh/profiles/desktop`，其余步骤一致。
+> 另外，跑脚本前先启动过一次 DSH，profile 目录存在才能装。
+
 装完**重启 DSH** 生效。
 
 ### 方式二：pnpm 直接从 GitHub 装
@@ -104,6 +108,9 @@ pnpm add github:GGBound-1229/dsh-web-search-custom
 # 系统有 npm，没 pnpm
 npm install github:GGBound-1229/dsh-web-search-custom
 ```
+
+> 两个都没有？用 DSH 自带的那套（先确认 `$DSH_HOME` 指向 DSH 安装根目录）：
+> `& "$DSH_HOME\resources\runtime\primary-runtime\dependencies\node\bin\node.exe" "$DSH_HOME\resources\runtime\primary-runtime\dependencies\pnpm\bin\pnpm.cjs" add github:GGBound-1229/dsh-web-search-custom`
 
 然后手工补两处（**缺任何一处都不生效**）：
 
@@ -145,7 +152,7 @@ npm install github:GGBound-1229/dsh-web-search-custom
 
 ### 方式三：纯手动
 
-1. 把本仓库复制到 `%USERPROFILE%\.dsh\profiles\desktop\plugins\dsh-web-search-custom\`
+1. 把本仓库复制到 `%USERPROFILE%\.dsh\profiles\desktop\plugins\dsh-web-search-custom\`（macOS / Linux：`~/.dsh/profiles/desktop/plugins/dsh-web-search-custom`）
 2. profile 的 `package.json` 加依赖并按上节加 `bundles`：
 
    ```jsonc
