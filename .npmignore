@@ -1,0 +1,12 @@
+# 依赖与本地锁文件
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+
+# 仓库自身配置
+.gitignore
+.gitattributes
+
+# 日志与测试临时产物
+*.log
+tests/output/
