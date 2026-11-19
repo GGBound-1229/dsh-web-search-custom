@@ -1,5 +1,8 @@
 # dsh-web-search-custom
 
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org)
+
 给 [DSH (DeepSeek Harness)](https://github.com/deepseek-ai) 的 `web_search` 换一个可插拔的搜索后端：
 不再依赖 DeepSeek 官方账号、`DEEPSEEK_API_KEY` 或原生 `web_search_20250305` 服务端工具。
 
@@ -50,10 +53,13 @@ DSH 内置搜索链路是 `web_search → ctx.web → dsh-web-search-deepseek �
 
 ## 安装
 
-### 方式一：脚本（推荐）
+装进 DSH profile 的本质只有三步：**把包放进 `node_modules` → 把包名加进 `bundles` → 让 `web` 选到这个 provider。**
+第三步是这个插件唯一特殊的地方：必须给 `dsh-web` 写一条 `- id: web` 覆盖。
+
+### 方式一：克隆 + 脚本（推荐）
 
 ```powershell
-git clone https://github.com/2951461586/dsh-web-search-custom.git
+git clone https://github.com/GGBound-1229/dsh-web-search-custom.git
 cd dsh-web-search-custom
 powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
 ```
@@ -72,46 +78,48 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
 .\scripts\install.ps1 -Engine auto
 
 # profile 不在默认位置
-.\scripts\install.ps1 -ProfilePath 'D:\dsh-profile\desktop'
+.\scripts\install.ps1 -ProfilePath 'D:\my-dsh-profile\desktop'
 ```
 
 装完**重启 DSH** 生效。
 
-### 重装 DSH 后恢复
-
-DSH 重装或重置 profile 会清空 `plugins/`、`package.json` 与 `cordis.patch.yml` 里的改动，插件随之消失。
-恢复只需要三步：
+### 方式二：pnpm 直接从 GitHub 装
 
 ```powershell
-git clone https://github.com/2951461586/dsh-web-search-custom.git
-cd dsh-web-search-custom
-powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
+# Windows
+cd $env:USERPROFILE\.dsh\profiles\desktop
 ```
 
-脚本按默认值重建 `chain` 链路（`exa → firecrawl → parallel → tinyfish → bing`）。
-要保留自定义链路或引擎：
-
-```powershell
-.\scripts\install.ps1 -Engine chain -Chain exa,firecrawl,bing
-.\scripts\install.ps1 -Engine auto
+```bash
+# Linux / macOS
+cd ~/.dsh/profiles/desktop
 ```
 
-脚本可重复执行：每次先备份 `package.json.bak-*` / `cordis.patch.yml.bak-*`，再按 id 覆盖，
-不会堆叠出多个 `- id: web-search-custom`。
+```bash
+# 系统有 pnpm
+pnpm add github:GGBound-1229/dsh-web-search-custom
+```
 
-### 方式二：手动
+```bash
+# 系统有 npm，没 pnpm
+npm install github:GGBound-1229/dsh-web-search-custom
+```
 
-1. 把本仓库复制到 `%USERPROFILE%\.dsh\profiles\desktop\plugins\dsh-web-search-custom\`
-2. `%USERPROFILE%\.dsh\profiles\desktop\package.json`：
+然后手工补两处（**缺任何一处都不生效**）：
 
-   ```jsonc
-   {
-     "dependencies": { "dsh-web-search-custom": "file:./plugins/dsh-web-search-custom" },
-     "dsh": { "profile": { "bundles": [ /* ... */ "dsh-web-search-custom" ] } }
-   }
+1. `package.json` 的 `dsh.profile.bundles` 里加包名：
+
+   ```json
+   "bundles": [
+     "@deepseek-ai/dsh-base",
+     "@deepseek-ai/dsh-web-app",
+     "dsh-web-search-custom"
+   ]
    ```
 
-3. `%USERPROFILE%\.dsh\profiles\desktop\cordis.patch.yml` 追加：
+   只加 `dependencies` 不加 `bundles`，包在磁盘上但 DSH 不会加载它。
+
+2. `cordis.patch.yml` 末尾追加：
 
    ```yaml
    - id: web
@@ -130,7 +138,46 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
        timeoutMs: 20000
    ```
 
+   第一条是**必须的**：`dsh-base` 默认把 `searchProvider` 写成 `deepseek-official`，
+   不覆盖就永远选不到这个插件；第二条只是把插件自带的 `engine: auto` 换成多源链路。
+
+3. 重启 DSH。
+
+### 方式三：纯手动
+
+1. 把本仓库复制到 `%USERPROFILE%\.dsh\profiles\desktop\plugins\dsh-web-search-custom\`
+2. profile 的 `package.json` 加依赖并按上节加 `bundles`：
+
+   ```jsonc
+   {
+     "dependencies": { "dsh-web-search-custom": "file:./plugins/dsh-web-search-custom" }
+   }
+   ```
+
+3. 按上节追加两条 patch 覆盖。
 4. 在 profile 目录执行 `pnpm install`，重启 DSH。
+
+### 重装 DSH 后恢复
+
+DSH 重装或重置 profile 会清空 `plugins/`、`package.json` 与 `cordis.patch.yml` 里的改动，插件随之消失。
+恢复只需要三步：
+
+```powershell
+git clone https://github.com/GGBound-1229/dsh-web-search-custom.git
+cd dsh-web-search-custom
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1
+```
+
+脚本按默认值重建 `chain` 链路（`exa → firecrawl → parallel → tinyfish → bing`），
+要保留自定义链路或引擎就带上参数：
+
+```powershell
+.\scripts\install.ps1 -Engine chain -Chain exa,firecrawl,bing
+.\scripts\install.ps1 -Engine auto
+```
+
+脚本可重复执行：每次先备份 `package.json.bak-*` / `cordis.patch.yml.bak-*`，再按 id 覆盖，
+不会堆叠出多个 `- id: web-search-custom`。
 
 ---
 
@@ -187,7 +234,7 @@ setx BOCHA_API_KEY "sk-xxx"
 | 整次预算 | `timeoutMs`（默认 20 s），到点即停，不会出现「插件超时、后端还在跑」 |
 | 冷却 | 429 额度耗尽 6 h；429 其他 60 s；401/403/5xx 60 s；网络错误 30 s |
 | 换源条件 | 任何失败都换（不限 429）——坏 key 不该让整次搜索失败 |
-| 缓存 | 10 min，key = `query|count|链路`，满 100 条淘汰最旧 20% |
+| 缓存 | 10 min，key = 查询词 + 条数 + 链路，满 100 条淘汰最旧 20% |
 | 兜底 | 全链失败才落 `bing`，`bing` 也空才抛错 |
 
 ---
@@ -223,11 +270,12 @@ npm run test:creds    # 凭据解析分支
 | 搜索全挂，报 `WEB_PROVIDER_ERROR` | 链路全失败 | 看 DSH 启动日志里的 `chain=... failed`；先把 `chain` 改成 `["bing"]` 验证基础链路 |
 | 结果全是字典/百科页 | 走了 `bing` | 检查 `engine` 是否为 `chain`，以及 patch 里是否有 `- id: web-search-custom` |
 | 只有 8 条（配置 10） | 多数 keyless 端点上限 8 | 正常，`maxResults` 是上限不是保证 |
-| 某家一直不命中 | 该家 429 冷却中 | `/health` 式观测不可用；看日志 `cooldown=21600s` 即额度耗尽，等额度恢复 |
+| 某家一直不命中 | 该家 429 冷却中 | 看日志 `cooldown=21600s` 即额度耗尽，等额度恢复 |
 | 改配置没反应 | 插件配置在启动时读取 | 重启 DSH；只有 `.credentials.yaml` 的改动能热生效 |
+| 启动后完全没有搜索能力 | 少了 `- id: web` 覆盖 | 补上 `searchProvider: custom`，再重启 |
 
 DSH 不写运行日志文件，插件启动那行 `[web-search-custom] ... engine="chain" → chain(...)`
-只出现在进程 stdout。可以用会话记录间接确认（见 `docs` 或 issue）。
+只出现在进程 stdout。
 
 ---
 
@@ -238,7 +286,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\uninstall.ps1
 ```
 
 脚本会备份后移除插件、`package.json` 里的依赖与 bundle 条目、以及两条 patch 覆盖。
-只想临时退回官方链路：把 `engine` 改成 `auto`，或把 `searchProvider` 改回 `deepseek-official`。
+只想临时退回官方链路：把 `searchProvider` 改回 `deepseek-official`，或把 `engine` 改成 `auto`。
 
 ---
 
